@@ -24,6 +24,9 @@ def sigmoid(x):
 def sigmoid_prime(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
+def cost_derivative(output_activations, training_label):
+        return (output_activations - training_label)
+
 #################### SECTION BREAK ####################
 
 class Network:
@@ -33,9 +36,6 @@ class Network:
         self.bias_vectors = [np.random.randn(layer_size) for layer_size in layer_sizes[1:]]
         self.weight_matrices = [np.random.randn(previous_layer_size, current_layer_size) for 
             (previous_layer_size, current_layer_size) in zip(layer_sizes[1:], layer_sizes[:-1])]
-
-    def cost_derivative(self, output_activations, training_label):
-        return (output_activations - training_label)
         
     def evaluate(self, test_set):
         return sum([np.argmax(self.feedforward(test_example)) == test_label for 
@@ -94,7 +94,7 @@ class Network:
             activation_vector = sigmoid(weighted_sum_vector)
             activation_vectors.append(activation_vector)
         
-        delta_vector = self.cost_derivative(activation_vectors[-1], training_label) * \
+        delta_vector = cost_derivative(activation_vectors[-1], training_label) * \
             sigmoid_prime(weighted_sum_vectors[-1])
         
         bias_grads[-1] = delta_vector
