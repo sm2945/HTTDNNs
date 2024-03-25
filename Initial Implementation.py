@@ -36,11 +36,11 @@ class Network:
         self.bias_vectors = [np.random.randn(layer_size) for layer_size in layer_sizes[1:]]
         self.weight_matrices = [np.random.randn(previous_layer_size, current_layer_size) for 
             (previous_layer_size, current_layer_size) in zip(layer_sizes[1:], layer_sizes[:-1])]
-        
+
     def evaluate(self, test_set):
         return sum([np.argmax(self.feedforward(test_example)) == test_label for 
             (test_example, test_label) in test_set])
-    
+
     def feedforward(self, activation_vector):
         for (bias_vector, weight_matrix) in zip(self.bias_vectors, self.weight_matrices):
             activation_vector = sigmoid(weight_matrix @ activation_vector + bias_vector)
@@ -48,12 +48,12 @@ class Network:
 
     def stochastic_gradient_descent(self, training_set, test_set, epochs, 
         mini_batch_size, learning_rate): 
-        
+
         for epoch in range(1, epochs + 1):
             random.shuffle(training_set)
             mini_batches = [training_set[index : index + mini_batch_size] for 
                 index in range(0, len(training_set), mini_batch_size)]
-            
+
             for mini_batch in mini_batches:
                 self.gradient_descent_step(mini_batch, learning_rate)
 
@@ -64,10 +64,10 @@ class Network:
             bias_vector in self.bias_vectors]
         weight_grad_totals = [np.zeros(weight_matrix.shape) for 
             weight_matrix in self.weight_matrices]
-        
+
         for (training_example, training_label) in mini_batch:
             (bias_grads, weight_grads) = self.backpropagation(training_example, training_label)
-            
+
             bias_grad_totals = [bias_grad_total + bias_grad for 
                 (bias_grad_total, bias_grad) in zip(bias_grad_totals, bias_grads)]
             weight_grad_totals = [weight_grad_total + weight_grad for 
@@ -83,29 +83,29 @@ class Network:
             bias_vector in self.bias_vectors]
         weight_grads = [np.zeros(weight_matrix.shape) for 
             weight_matrix in self.weight_matrices]
-        
+
         activation_vector = training_example
         activation_vectors = [activation_vector]
         weighted_sum_vectors = []
-        
+
         for (bias_vector, weight_matrix) in zip(self.bias_vectors, self.weight_matrices):
             weighted_sum_vector = weight_matrix @ activation_vector + bias_vector
             weighted_sum_vectors.append(weighted_sum_vector)
             activation_vector = sigmoid(weighted_sum_vector)
             activation_vectors.append(activation_vector)
-        
+
         delta_vector = cost_derivative(activation_vectors[-1], training_label) * \
             sigmoid_prime(weighted_sum_vectors[-1])
-        
+
         bias_grads[-1] = delta_vector
         weight_grads[-1] = np.outer(delta_vector, activation_vectors[-2])
-            
+  
         for layer in range(-2, -self.num_layers, -1):
             delta_vector = self.weight_matrices[layer + 1].T @ delta_vector * \
                 sigmoid_prime(weighted_sum_vectors[layer])
             bias_grads[layer] = delta_vector
             weight_grads[layer] = np.outer(delta_vector, activation_vectors[layer - 1])
-            
+  
         return (bias_grads, weight_grads)
 
 #################### SECTION BREAK ####################
