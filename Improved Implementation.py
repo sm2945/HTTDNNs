@@ -41,9 +41,9 @@ class Network:
     self.lyr_sizes = lyr_sizes
     self.num_lyrs = len(lyr_sizes)
     self.bias_vctrs = [np.random.randn(lyr_size) for lyr_size in lyr_sizes[1:]]
-    self.weight_mtrcs = [np.random.normal(0, 1 / np.sqrt(prvs_lyr_size), 
-      (prvs_lyr_size, crrnt_lyr_size)) for
-        (prvs_lyr_size, crrnt_lyr_size) in zip(lyr_sizes[1:], lyr_sizes[:-1])]
+    self.weight_mtrcs = [np.random.normal(0, 1 / np.sqrt(crrnt_lyr_size),
+      (crrnt_lyr_size, prvs_lyr_size)) for
+        (prvs_lyr_size, crrnt_lyr_size) in zip(lyr_sizes[:-1], lyr_sizes[1:])]
 
   def feedforward(self, activation_vctr):
     for (bias_vctr, weight_mtrx) in zip(self.bias_vctrs, self.weight_mtrcs):
