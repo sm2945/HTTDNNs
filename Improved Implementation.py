@@ -5,15 +5,15 @@ from keras.datasets import mnist
 (training_exmpls, training_lbls), (test_exmpls, test_lbls) = mnist.load_data()
 
 def vectorise(label):
-  label_vector = np.zeros(10)
+  label_vector = np.zeros((10, 1))
   label_vector[label] = 1
   return label_vector
 
-training_exmpls = [training_exmpl.flatten() / 255 for 
+training_exmpls = [training_exmpl.reshape(784, 1) / 255 for
   training_exmpl in training_exmpls]
-training_lbls = [vectorise(training_lbl) for 
+training_lbls = [vectorise(training_lbl) for
   training_lbl in training_lbls]
-test_exmpls = [test_exmpl.flatten() / 255 for 
+test_exmpls = [test_exmpl.reshape(784, 1) / 255 for
   test_exmpl in test_exmpls]
 
 training_set = list(zip(training_exmpls, training_lbls))
@@ -32,7 +32,7 @@ def sigmoid_prime(x):
 
 def cost_derivative(output_activations, training_lbl):
   return (output_activations - training_lbl) / \
-    (output_activations * ( 1 - output_activations))
+    (output_activations * (1 - output_activations))
 
 #################### SECTION BREAK ####################
 
@@ -40,7 +40,7 @@ class Network:
   def __init__(self, lyr_sizes):
     self.lyr_sizes = lyr_sizes
     self.num_lyrs = len(lyr_sizes)
-    self.bias_vctrs = [np.random.randn(lyr_size) for lyr_size in lyr_sizes[1:]]
+    self.bias_vctrs = [np.random.randn(lyr_size, 1) for lyr_size in lyr_sizes[1:]]
     self.weight_mtrcs = [np.random.normal(0, 1 / np.sqrt(crrnt_lyr_size),
       (crrnt_lyr_size, prvs_lyr_size)) for
         (prvs_lyr_size, crrnt_lyr_size) in zip(lyr_sizes[:-1], lyr_sizes[1:])]
@@ -61,7 +61,7 @@ class Network:
       for index in range(len(output_activations)):
         y_i, a_i = training_lbl[index], output_activations[index]
         running_total += -(y_i * np.log(a_i) + (1 - y_i) * np.log(1 - a_i))
-    return running_total / len(training_set)
+    return (running_total / len(training_set))[0]
 
   def stochastic_gradient_descent(self, training_set, test_set, max_epochs,
     mini_btch_size, eta, lmbda, max_epcohs_wtht_imprvmnt): 
@@ -111,10 +111,8 @@ class Network:
         (weight_mtrx, weight_grad_ttl) in zip(self.weight_mtrcs, weight_grad_ttls)]
 
   def backprop(self, training_exmpl, training_lbl):
-    bias_grads = [np.zeros(bias_vctr.shape) for
-      bias_vctr in self.bias_vctrs]
-    weight_grads = [np.zeros(weight_mtrx.shape) for
-      weight_mtrx in self.weight_mtrcs]
+    bias_grads = []
+    weight_grads = []
 
     activation_vctr = training_exmpl
     activation_vctrs = [activation_vctr]
@@ -129,14 +127,14 @@ class Network:
     delta_vctr = cost_derivative(activation_vctrs[-1], training_lbl) * \
       sigmoid_prime(weighted_sum_vctrs[-1])
 
-    bias_grads[-1] = delta_vctr
-    weight_grads[-1] = np.outer(delta_vctr, activation_vctrs[-2])
+    bias_grads.insert(0, delta_vctr)
+    weight_grads.insert(0, delta_vctr @ activation_vctrs[-2].T)
   
     for layer in range(-2, -self.num_lyrs, -1):
       delta_vctr = self.weight_mtrcs[layer + 1].T @ delta_vctr * \
         sigmoid_prime(weighted_sum_vctrs[layer])
-      bias_grads[layer] = delta_vctr
-      weight_grads[layer] = np.outer(delta_vctr, activation_vctrs[layer - 1])
+      bias_grads.insert(0, delta_vctr)
+      weight_grads.insert(0, delta_vctr @ activation_vctrs[layer - 1].T)
   
     return (bias_grads, weight_grads)
 
