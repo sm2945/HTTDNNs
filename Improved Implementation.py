@@ -41,7 +41,7 @@ class Network:
     self.lyr_sizes = lyr_sizes
     self.num_lyrs = len(lyr_sizes)
     self.bias_vctrs = [np.random.randn(lyr_size, 1) for lyr_size in lyr_sizes[1:]]
-    self.weight_mtrcs = [np.random.normal(0, 1 / np.sqrt(crrnt_lyr_size),
+    self.weight_mtrcs = [np.random.normal(0, 1 / np.sqrt(prvs_lyr_size),
       (crrnt_lyr_size, prvs_lyr_size)) for
         (prvs_lyr_size, crrnt_lyr_size) in zip(lyr_sizes[:-1], lyr_sizes[1:])]
 
@@ -60,7 +60,7 @@ class Network:
       output_activations = self.feedforward(training_exmpl)
       for index in range(len(output_activations)):
         y_i, a_i = training_lbl[index], output_activations[index]
-        running_total += -(y_i * np.log(a_i) + (1 - y_i) * np.log(1 - a_i))
+        running_total += -y_i * np.log(a_i) - (1 - y_i) * np.log(1 - a_i)
     return (running_total / len(training_set))[0]
 
   def stochastic_gradient_descent(self, training_set, test_set, max_epochs,
